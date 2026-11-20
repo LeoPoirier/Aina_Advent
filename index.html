@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aina's Advent Calendar</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="header">
+    <h1>🎄 Aina's Advent Calendar 🎄</h1>
+    <p>Open a door when its day arrives</p>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="footer-note">
+    Days 6–24 are physical gifts this year — no door for those! 🎁
+  </div>
+
+<script>
+  const DOORS = [
+    { day: 1, path: "1st/index.html", unlockMonth: 11 },
+    { day: 2, path: "2nd/index.html", unlockMonth: 11 },
+    { day: 3, path: "3rd/index.html", unlockMonth: 11 },
+    { day: 4, path: "4th/index.html", unlockMonth: 11 },
+    { day: 5, path: "5th/index.html", unlockMonth: 11 },
+  ];
+
+  const grid = document.getElementById("grid");
+
+  function isUnlocked(door) {
+    const now = new Date();
+    if (now.getMonth() + 1 < door.unlockMonth) return false;
+    if (now.getMonth() + 1 === door.unlockMonth && now.getDate() < door.day) return false;
+    return true;
+  }
+
+  const REVEAL_ICONS = ["❤️", "🥐", "🎬", "⭐", "🎙️"];
+
+  function render() {
+    grid.innerHTML = "";
+    DOORS.forEach((door, i) => {
+      const unlocked = isUnlocked(door);
+      const wrapper = document.createElement(unlocked ? "a" : "div");
+      wrapper.className = "door-wrapper " + (unlocked ? "unlocked" : "locked");
+      if (unlocked) wrapper.href = door.path;
+
+      const frame = document.createElement("div");
+      frame.className = "door-frame";
+      frame.textContent = REVEAL_ICONS[i % REVEAL_ICONS.length];
+
+      const panel = document.createElement("div");
+      panel.className = "door-panel";
+      panel.textContent = door.day;
+      if (!unlocked) {
+        const lock = document.createElement("span");
+        lock.className = "lock-icon";
+        lock.textContent = "🔒";
+        panel.appendChild(lock);
+      }
+
+      wrapper.appendChild(frame);
+      wrapper.appendChild(panel);
+      grid.appendChild(wrapper);
+    });
+  }
+
+  render();
+</script>
+<script src="snow.js"></script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Day 1 — Sweeter than Yogurt</title>
+<style>
+  @font-face {
+    font-family: "Honey So Sweety";
+    src: url("Honey so Sweety Regular.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Amsahoney";
+    src: url("Amsahoney-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  body {
+    height: 100vh;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 16px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 0%, #fffdf6 0%, #f5ecd6 70%, #f0e4c7 100%);
+    color: #7a6a4f;
+  }
+
+  .title-block {
+    flex: 0 0 auto;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 900;
+    color: #9c2a4a;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .subtitle {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    color: #b9ab8c;
+  }
+
+  .bowl-stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bowl-frame {
+    position: relative;
+    line-height: 0;
+  }
+
+  .bowl-frame img {
+    display: block;
+    height: min(78vh, 78vw);
+    width: auto;
+    filter: drop-shadow(0 25px 35px rgba(90, 70, 40, 0.25));
+  }
+
+  @media (max-width: 640px) {
+    .bowl-frame img {
+      height: auto;
+      width: 135vw;
+    }
+  }
+
+  .circle-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 73.2422%;
+    aspect-ratio: 1 / 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px dashed rgba(156, 42, 74, 0.45);
+    pointer-events: none;
+    display: none;
+  }
+
+  .sweet-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 66%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-family: "Amsahoney", cursive;
+    font-size: clamp(3rem, 9.4vw, 5rem);
+    line-height: 1.12;
+    color: #9c2a4a;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .sweet-text.visible {
+    opacity: 1;
+  }
+
+  .actions {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding-top: 12px;
+  }
+
+  .reveal-btn {
+    border: none;
+    background: #c4453c;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 26px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+
+  .reveal-btn:hover {
+    background: #a8352d;
+    transform: translateY(-2px);
+  }
+
+  .reveal-btn:active {
+    transform: scale(0.96);
+  }
+
+  .back-link {
+    display: inline-block;
+    color: #7a6a4f;
+    text-decoration: none;
+    font-size: 0.9rem;
+    border: 1px solid #c9bd9d;
+    padding: 8px 18px;
+    border-radius: 999px;
+  }
+
+
+</style>
+</head>
+<body>
+  <div class="title-block">
+    <h2>Sweeter than Yogurt</h2>
+    <p class="subtitle">101 cute words to show my love</p>
+  </div>
+
+  <div class="bowl-stage">
+    <div class="bowl-frame">
+      <img src="Yogurt.png" alt="A bowl of swirled yogurt">
+      <div class="circle-guide" id="circleGuide"></div>
+      <div class="sweet-text" id="sweetText"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="reveal-btn" id="revealBtn">🥣 Reveal a sweet word</button>
+    <a class="back-link" href="../index.html">← Back to calendar</a>
+  </div>
+
+<script>
+  const SENTENCES = [
+    "You are the best",
+    "I love your smile",
+    "I Would buy all the Yogurts in the World for you",
+    "I wanna kiss your Autism",
+    "Wow So neurotypical",
+    "Life with you is a dream",
+    "I wanna have a doggy(style) with you",
+    "OMG I miss your lips",
+    "Crazy How cute you are",
+    "I am immaginning you all the time... mostly naked",
+    "Cuddling with you is best",
+    "No worries I will be your therapist for free",
+    "Why the bed where you sleep is so attractive",
+    "Nah no worries she doesn't mask",
+    "pfff you're the cutest",
+    "Please Kill me at the gym",
+    "I wanna hike with you until the end of the world",
+    "How about a weekend in Os de Civis ?",
+    "Wanna go on a bike tour ?",
+    "I will shower you in gifts",
+    "I will crush you under my love",
+    "I will massage you non stop",
+    "My love for you will never end",
+    "You are my forever girl",
+    "When will we marry ?",
+    "You know I am the Ideal Son-in-law",
+    "I will make your whole family love me",
+    "You are the only one I tell everything",
+    "My love for you know no bounds",
+    "How many kisses until you die ? I will do as much",
+    "I want to grow old with you",
+    "24 days of love",
+    "I have never loved that much",
+    "I won't ever stop to love you",
+    "Are you my soulmate ?",
+    "Why are you so sweet ? you are my cutie pie",
+    "I fell for the autistic one... now I have to learn Two languages",
+    "Don't hate me I will gift you something else",
+    "Let me care for my Aina",
+    "You are pretty pretty",
+    "The most beautiful 29 years old",
+    "Can I give you a massage ?",
+    "Via ferrata whan ?",
+    "Let's rank some yougurts",
+    "Get out of my mind !!!!!",
+    "never gonna give you up neve gonna let you down",
+    "You're sweeter than the yogurt, and that's saying a lot",
+    "You're my favorite flavor",
+    "Life's too short for bad yogurt and boring people, luckily you're neither",
+    "Info-dump at me, I'm listening",
+    "I'd relearn every language on earth for you",
+    "You make ordinary days feel like plans worth making",
+    "I think about you more than is probably normal",
+    "Home is wherever you are, yogurt included",
+    "Next via ferrata, I carry the snacks, you carry my heart",
+    "You + me = chaos but the good kind",
+    "10/10 would get neurodivergent with again",
+    "You are my special interest",
+    "I might be specially attracted to you",
+    "I would even learn sarcasm for you",
+    "Love to hug you on the couch",
+    "Cuddling is the best",
+    "Wanna watch a movie",
+    "Fight club was soooo good",
+    "Best Waldenburg trip",
+    "OMG I miss you",
+    "Wow that worth asking you out",
+    "I think I like you a bit ^^",
+    "All the weekends with you were dreams",
+    "Miss your butt",
+    "Wanna kiss",
+    "That time in pedraforca was so fun",
+    "I love our bathtub talks",
+    "Pitbull said : I know you want me, you know I want you",
+    "Sometimes all I can think about is you, late night in the middle of june",
+    "Overwhelmed Aina is the bull I need to tame",
+    "Naked Hug ?",
+    "No pressure we are just friends",
+    "Te quiero Baby",
+    "I am going to force teach you electronics",
+    "My kisses are non-negotiables",
+    "You know I will overwhelm you",
+    "Touching your face is my love language",
+    "I think about you all day long",
+    "Your lips are my dream",
+    "pffff you are beautiful",
+    "WOW Gorgeous girl",
+    "you deserve the world",
+    "I love you to the moon and back",
+    "I love you to MoM-z14 and back",
+    "You deserve to be happy (therapist approuved)",
+    "You deserve Love",
+    "You deserve all the care in the world",
+    "I will pamper you",
+    "I will make you scream in bed and maybe of overwhelming",
+    "Come to me you will be my princess",
+    "I have to care for you more than you care of me",
+    "You are the best Human",
+    "You are my Human <3",
+    "I wanna Kiss your butt",
+    "Be ready to be Overwhelmed by my gifts",
+  ];
+
+  const sweetText = document.getElementById("sweetText");
+  const revealBtn = document.getElementById("revealBtn");
+  let lastIndex = -1;
+
+  revealBtn.addEventListener("click", () => {
+    let i = Math.floor(Math.random() * SENTENCES.length);
+    if (SENTENCES.length > 1 && i === lastIndex) {
+      i = (i + 1) % SENTENCES.length;
+    }
+    lastIndex = i;
+
+    sweetText.classList.remove("visible");
+    setTimeout(() => {
+      sweetText.textContent = SENTENCES[i];
+      sweetText.classList.add("visible");
+    }, 180);
+  });
+</script>
+</body>
+</html>
