@@ -3,15 +3,674 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Day 4 — Coming soon</title>
-<link rel="stylesheet" href="../styles.css">
+<title>Day 4 — Stargazing Night</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: "Quicksand", "Segoe UI", system-ui, sans-serif;
+    color: #f3f0ff;
+    background: #060714;
+  }
+
+  .scene-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .scene-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ---------- grain, shared ---------- */
+  .grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.4;
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncR type='linear' slope='2.4' intercept='-0.7'/><feFuncG type='linear' slope='2.4' intercept='-0.7'/><feFuncB type='linear' slope='2.4' intercept='-0.7'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* ---------- scene 1: ground ---------- */
+  #sceneGround {
+    background-image: url("Background.png");
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+  }
+
+  #sceneGround::before {
+    /* gentle darkening toward the bottom so the van/telescope silhouette
+       and the caption text both stay readable against the photo */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(10, 8, 25, 0.15) 0%, rgba(10, 8, 25, 0.1) 45%, rgba(6, 5, 16, 0.55) 100%);
+  }
+
+  .ground-caption {
+    position: absolute;
+    top: 9%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 2;
+  }
+
+  .ground-caption h2 {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    margin: 0 0 10px;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .ground-caption p {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    font-weight: 500;
+    margin: 0;
+    color: #fff1e6;
+  }
+
+  /* van + telescope, parked foreground */
+  .campsite {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(92vw, 1000px);
+    z-index: 1;
+  }
+
+  @media (min-width: 900px) {
+    .campsite {
+      width: min(75vw, 1400px);
+    }
+  }
+
+  .campsite img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
+  }
+
+  .telescope-hotspot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 21%;
+    height: 100%;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  .telescope-hotspot .scope-glow {
+    position: absolute;
+    left: 14%;
+    top: 4%;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 233, 168, 0.55), transparent 70%);
+    animation: scope-pulse 2.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes scope-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.25); }
+  }
+
+  .tap-hint {
+    position: absolute;
+    left: 10%;
+    top: -38px;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff1e6;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    animation: bob 2s ease-in-out infinite;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  @keyframes bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 6px); }
+  }
+
+  /* ---------- scene 2: warp ---------- */
+  #sceneWarp {
+    background: radial-gradient(ellipse at 50% 50%, #141a3a 0%, #0a0e24 45%, #000 100%);
+  }
+
+  #warpCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ---------- scene 3: procedural universe ---------- */
+  #sceneUniverse {
+    background: #03040c;
+    overflow: hidden;
+  }
+
+  #universeCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+  }
+
+  .claim-btn {
+    position: absolute;
+    right: 24px;
+    bottom: 24px;
+    z-index: 2;
+    border: none;
+    background: #f3e7bf;
+    color: #2a2210;
+    font-family: "Quicksand", sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    padding: 16px 30px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s ease;
+  }
+
+  .claim-btn:hover { transform: translateY(-2px); }
+  .claim-btn:active { transform: scale(0.96); }
+
+  #sceneUniverse .back-link {
+    position: absolute;
+    left: 24px;
+    top: 24px;
+    z-index: 2;
+    color: #e6e0ff;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 700;
+    border: 1px solid rgba(230, 224, 255, 0.35);
+    padding: 10px 22px;
+    border-radius: 999px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scope-glow, .tap-hint { animation: none !important; }
+  }
+</style>
 </head>
 <body>
-  <div class="day-page">
-    <h2>⭐ Day 4</h2>
-    <p>This door's surprise isn't built yet — check back soon!</p>
+
+  <!-- Scene 1: parked at the campsite, dusk -->
+  <div class="scene-screen active" id="sceneGround">
+    <div class="ground-caption">
+      <h2>Somewhere up in the mountains</h2>
+      <p>The van's parked, the sky's clear — set up the telescope.</p>
+    </div>
+
+    <div class="campsite">
+      <img src="van_cropped.png" alt="Van and telescope parked in the mountains">
+      <button id="telescopeHotspot" class="telescope-hotspot" aria-label="Look through the telescope">
+        <span class="scope-glow"></span>
+      </button>
+      <p class="tap-hint">👆 tap the telescope</p>
+    </div>
+
+    <div class="grain"></div>
+  </div>
+
+  <!-- Scene 2: warp through the stars -->
+  <div class="scene-screen" id="sceneWarp">
+    <canvas id="warpCanvas"></canvas>
+  </div>
+
+  <!-- Scene 3: the procedural universe. Spawn-point text has soft spring
+       physics; clicking anywhere sends out a ripple and nudges nearby
+       text/planets. Pan by moving the mouse near a screen edge. -->
+  <div class="scene-screen" id="sceneUniverse">
+    <canvas id="universeCanvas"></canvas>
+    <button class="claim-btn" id="bookBtn">✨ Claim ticket</button>
     <a class="back-link" href="../index.html">← Back to calendar</a>
   </div>
-<script src="../snow.js"></script>
+
+<script>
+  const sceneGround = document.getElementById("sceneGround");
+  const sceneWarp = document.getElementById("sceneWarp");
+  const sceneUniverse = document.getElementById("sceneUniverse");
+  const telescopeHotspot = document.getElementById("telescopeHotspot");
+
+  function goToScene(from, to) {
+    from.classList.remove("active");
+    to.classList.add("active");
+  }
+
+  function startWarp() {
+    goToScene(sceneGround, sceneWarp);
+    runWarpAnimation(4200, () => {
+      goToScene(sceneWarp, sceneUniverse);
+      initUniverse();
+    });
+  }
+
+  telescopeHotspot.addEventListener("click", startWarp);
+  telescopeHotspot.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      startWarp();
+    }
+  });
+
+  // ---- warp-speed starfield flythrough ----
+  function runWarpAnimation(durationMs, onDone) {
+    const canvas = document.getElementById("warpCanvas");
+    const ctx = canvas.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize() {
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const cx = W / 2;
+    const cy = H / 2;
+    const STAR_COUNT = window.innerWidth < 600 ? 420 : 720;
+    const MAX_DEPTH = 1200;
+
+    const stars = [];
+    function resetStar(s, randomDepth) {
+      s.x = (Math.random() * 2 - 1) * W;
+      s.y = (Math.random() * 2 - 1) * H;
+      s.z = randomDepth ? Math.random() * MAX_DEPTH : MAX_DEPTH;
+      s.pz = s.z;
+    }
+    for (let i = 0; i < STAR_COUNT; i++) {
+      const s = {};
+      resetStar(s, true);
+      stars.push(s);
+    }
+
+    const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
+    bg.addColorStop(0, "#141a3a");
+    bg.addColorStop(0.45, "#0a0e24");
+    bg.addColorStop(1, "#020210");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    const start = performance.now();
+    let rafId;
+    let flashAlpha = 0.9;
+
+    function frame(now) {
+      const elapsed = now - start;
+      const t = Math.min(1, elapsed / durationMs);
+      // starts already moving at a lively pace, then builds to a blur —
+      // no slow near-motionless ramp-up at the start
+      const speed = 14 + Math.pow(t, 1.6) * 44;
+
+      // trail effect instead of hard clear — gentle at first so stars stay
+      // visible/dense early on, more aggressive later for streaky blur
+      const fadeAlpha = 0.18 + t * 0.22;
+      ctx.fillStyle = `rgba(4,4,16,${fadeAlpha})`;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = "rgba(200,215,255,0.9)";
+
+      for (const s of stars) {
+        s.pz = s.z;
+        s.z -= speed;
+        if (s.z <= 1) {
+          resetStar(s, false);
+          continue;
+        }
+
+        const sx = (s.x / s.z) * 300 + cx;
+        const sy = (s.y / s.z) * 300 + cy;
+        const px = (s.x / s.pz) * 300 + cx;
+        const py = (s.y / s.pz) * 300 + cy;
+
+        if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) continue;
+
+        const depthFactor = 1 - s.z / MAX_DEPTH;
+        const size = Math.max(2, depthFactor * 6.5);
+        const alpha = Math.min(1, 0.65 + depthFactor * 0.6);
+
+        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+        ctx.lineWidth = size;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(sx, sy);
+        ctx.stroke();
+      }
+
+      ctx.shadowBlur = 0;
+
+      if (flashAlpha > 0) {
+        const flash = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.6);
+        flash.addColorStop(0, `rgba(255,255,255,${flashAlpha})`);
+        flash.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = flash;
+        ctx.fillRect(0, 0, W, H);
+        flashAlpha -= 0.045;
+      }
+
+      if (elapsed < durationMs) {
+        rafId = requestAnimationFrame(frame);
+      } else {
+        cancelAnimationFrame(rafId);
+        if (onDone) onDone();
+      }
+    }
+
+    rafId = requestAnimationFrame(frame);
+
+    window.addEventListener("resize", resize);
+  }
+
+  // ---- scene 3: procedural universe (step 1 — pan, spawn text, ripples) ----
+  let universeStarted = false;
+
+  function initUniverse() {
+    if (universeStarted) return;
+    universeStarted = true;
+
+    const canvas = document.getElementById("universeCanvas");
+    const ctx = canvas.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize() {
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Deterministic PRNG so the starfield is stable across frames/resizes
+    // rather than reshuffling — "procedural" but not literally random every tick.
+    function seededRandom(seed) {
+      let s = seed;
+      return function () {
+        s = (s * 9301 + 49297) % 233280;
+        return s / 233280;
+      };
+    }
+    const rand = seededRandom(1337);
+
+    const WORLD = 2600; // tiling period — the starfield wraps seamlessly over this span
+    const STAR_COUNT = 260;
+    const stars = [];
+    for (let i = 0; i < STAR_COUNT; i++) {
+      stars.push({
+        x: rand() * WORLD - WORLD / 2,
+        y: rand() * WORLD - WORLD / 2,
+        r: 0.6 + rand() * 1.4,
+        tw: rand() * Math.PI * 2,
+      });
+    }
+
+    // Spawn-point text, split per word so each has its own soft spring
+    // physics: a click nearby nudges it, and it eases back home after.
+    // Two groups stacked vertically: the voucher headline (bigger, brighter)
+    // and a dimmer, smaller interaction hint underneath.
+    const GROUPS = [
+      { lines: ["1 Voucher for a lovely", "Stargazing Night"], font: "600 30px Quicksand, sans-serif", lineHeight: 46, alpha: 0.92 },
+      { lines: ["Click to mess with the universe"], font: "500 16px Quicksand, sans-serif", lineHeight: 0, alpha: 0.45 },
+    ];
+    const GROUP_GAP = 36;
+    const words = [];
+    let groupTop = 0;
+    GROUPS.forEach((group) => {
+      ctx.font = group.font;
+      const groupHeight = (group.lines.length - 1) * group.lineHeight;
+      const groupStartY = groupTop - groupHeight / 2;
+      group.lines.forEach((line, li) => {
+        const parts = line.split(" ");
+        const widths = parts.map((p) => ctx.measureText(p + " ").width);
+        const totalWidth = widths.reduce((a, b) => a + b, 0);
+        let cursor = -totalWidth / 2;
+        const y = groupStartY + li * group.lineHeight;
+        parts.forEach((p, i) => {
+          const w = widths[i];
+          const homeX = cursor + w / 2;
+          cursor += w;
+          words.push({ text: p, homeX, homeY: y, x: homeX, y, vx: 0, vy: 0, font: group.font, alpha: group.alpha });
+        });
+      });
+      groupTop += groupHeight + GROUP_GAP;
+    });
+    // re-center the whole block vertically now that total height is known
+    const blockHeight = groupTop - GROUP_GAP;
+    words.forEach((w) => {
+      w.homeY -= blockHeight / 2;
+      w.y = w.homeY;
+    });
+
+    const camera = { x: 0, y: 0 };
+    const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, active: false };
+
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.active = true;
+    });
+    canvas.addEventListener("mouseleave", () => {
+      mouse.active = false;
+    });
+
+    const ripples = [];
+
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const worldX = screenX - window.innerWidth / 2 + camera.x;
+      const worldY = screenY - window.innerHeight / 2 + camera.y;
+
+      ripples.push({ x: worldX, y: worldY, start: performance.now() });
+
+      const INFLUENCE = 260;
+      words.forEach((w) => {
+        const dx = w.x - worldX;
+        const dy = w.y - worldY;
+        const dist = Math.hypot(dx, dy) || 1;
+        if (dist < INFLUENCE) {
+          const strength = (1 - dist / INFLUENCE) * 5.5;
+          w.vx += (dx / dist) * strength;
+          w.vy += (dy / dist) * strength;
+        }
+      });
+    });
+
+    const MAX_PAN_SPEED = 7.5;
+    const PAN_THRESHOLD = 0.55; // start panning once this far from center, toward any edge (incl. corners/diagonals)
+
+    function edgeFalloff(n) {
+      const a = Math.abs(n);
+      if (a < PAN_THRESHOLD) return 0;
+      const t = (a - PAN_THRESHOLD) / (1 - PAN_THRESHOLD);
+      return Math.sign(n) * t * t;
+    }
+
+    function updateCamera() {
+      if (!mouse.active) return;
+      // normalized position from screen center, -1..1 on each axis — this
+      // makes panning radial/omnidirectional (corners and diagonals work
+      // the same as the four cardinal edges) rather than four separate
+      // edge-strip hotzones.
+      const nx = (mouse.x - window.innerWidth / 2) / (window.innerWidth / 2);
+      const ny = (mouse.y - window.innerHeight / 2) / (window.innerHeight / 2);
+      camera.x += edgeFalloff(nx) * MAX_PAN_SPEED;
+      camera.y += edgeFalloff(ny) * MAX_PAN_SPEED;
+    }
+
+    function wrapCoord(v, period) {
+      let r = v % period;
+      if (r < -period / 2) r += period;
+      if (r > period / 2) r -= period;
+      return r;
+    }
+
+    function draw(now) {
+      updateCamera();
+
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      const cx = W / 2;
+      const cy = H / 2;
+
+      ctx.fillStyle = "#03040c";
+      ctx.fillRect(0, 0, W, H);
+
+      stars.forEach((s) => {
+        const sx = cx + wrapCoord(s.x - camera.x, WORLD);
+        const sy = cy + wrapCoord(s.y - camera.y, WORLD);
+        if (sx < -10 || sx > W + 10 || sy < -10 || sy > H + 10) return;
+        const twinkle = 0.55 + 0.45 * Math.sin(now / 900 + s.tw);
+        ctx.fillStyle = `rgba(255,255,255,${(0.35 * twinkle + 0.25).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        const age = (now - r.start) / 1000;
+        const duration = 1.4;
+        if (age > duration) {
+          ripples.splice(i, 1);
+          continue;
+        }
+        const t = age / duration;
+        const radius = 10 + t * 150;
+        const alpha = (1 - t) * 0.35;
+        const sx = cx + (r.x - camera.x);
+        const sy = cy + (r.y - camera.y);
+        ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        const radius2 = Math.max(0, radius - 24);
+        ctx.strokeStyle = `rgba(255,255,255,${(alpha * 0.6).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, radius2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const springK = 0.02;
+      const damping = 0.9;
+      words.forEach((w) => {
+        w.vx += (w.homeX - w.x) * springK;
+        w.vy += (w.homeY - w.y) * springK;
+        w.vx *= damping;
+        w.vy *= damping;
+        w.x += w.vx;
+        w.y += w.vy;
+
+        const sx = cx + (w.x - camera.x);
+        const sy = cy + (w.y - camera.y);
+        ctx.font = w.font;
+        ctx.fillStyle = `rgba(240,240,255,${w.alpha})`;
+        ctx.fillText(w.text, sx, sy);
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  // ---- book the night: downloadable ticket ----
+  document.getElementById("bookBtn").addEventListener("click", () => {
+    const canvas = document.createElement("canvas");
+    const W = 1000, H = 560;
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d");
+
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#0a0e24");
+    bg.addColorStop(1, "#1b1438");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = 0; i < 70; i++) {
+      ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.7 + 0.2})`;
+      const r = Math.random() * 1.4 + 0.3;
+      ctx.beginPath();
+      ctx.arc(Math.random() * W, Math.random() * (H - 120), r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    ctx.setLineDash([14, 10]);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(20, 20, W - 40, H - 40);
+    ctx.setLineDash([]);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#f3e7bf";
+    ctx.font = "700 30px 'Quicksand', sans-serif";
+    ctx.fillText("✨ STARGAZING NIGHT ✨", W / 2, 90);
+
+    ctx.font = "110px sans-serif";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("🔭", W / 2, 230);
+
+    ctx.font = "700 42px 'Quicksand', sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("Admit One — No Phones Allowed", W / 2, 300);
+
+    ctx.font = "600 22px 'Quicksand', sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillText("One clear night, one blanket, however many stars we get", W / 2, 345);
+
+    ctx.textAlign = "left";
+    ctx.font = "600 18px 'Quicksand', sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillText("🌙  Redeemable on the next clear sky", 40, H - 40);
+
+    const link = document.createElement("a");
+    link.download = "stargazing-night-ticket.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+</script>
 </body>
 </html>
