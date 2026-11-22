@@ -1,0 +1,109 @@
+HOW TO WRITE QUESTIONS FOR THE DAY 5 QUIZ
+==========================================
+
+Two question types: multiple choice (MC) and free text (TEXT).
+Write them below using the exact format shown — one block per question,
+blank line between blocks. I'll transcribe these into the page once
+you're done; you don't need to touch any code.
+
+MULTIPLE CHOICE format:
+  TYPE: MC
+  Q: <the question>
+  A: <option 1>
+  A: <option 2>
+  A: <option 3>
+  A: <option 4>          (3 or 4 options is fine, doesn't have to be 4)
+  CORRECT: <the exact text of the correct option, copied from above>
+
+FREE TEXT format:
+  TYPE: TEXT
+  Q: <the question>
+  ACCEPTED: <answer 1>, <answer 2>, <answer 3>   (any of these count as correct,
+                                                   matching is case-insensitive
+                                                   and just needs to appear
+                                                   somewhere in her answer)
+
+
+---- YOUR QUESTIONS GO BELOW THIS LINE ----
+
+TYPE: MC
+Q: How many week-ends did we spend together?
+A: 13 DISP : It's all numbers anyway
+A: 10 DISP : It's all numbers anyway
+A: 9 DISP : Wow color me impressed
+A: 7 DISP : It's all numbers anyway
+CORRECT: 9
+
+TYPE: TEXT
+Q: What day did we meet each other? (DD/MM/YYYY)
+ACCEPTED: 23/02/2026 DISP : At least you know that... reassuring
+WRONG DISP : What the Fuck ?
+
+TYPE: MC
+Q: What is the brand of my car?
+A: Mazda DISP : I will marry you for sure
+A: Toyota DISP : nope too bad
+A: Clown car DISP : ahah real funny... fuck you
+A: Honda DISP : nope too bad
+CORRECT: Mazda
+
+TYPE: MC
+Q: Which movie did we try to watch?
+A: Mr and Mrs Smith
+A: Catch Me If You Can
+A: Mamma Mia  DISP : and obviously Fight club
+A: Rapunzel DISP : WTF that was with Alex... I will fight you
+CORRECT: Mamma Mia
+
+TYPE: MC
+Q: What is the name of the via ferrata we did together?
+A: Saint Paul de Fenouillet DISP : I loved that van trip so much
+A: Saint Vincent de Paul DISP : French names... all the same anyway
+A: Saint Jean de Luz DISP : French names... all the same anyway
+A: Saint Pierre des Corps DISP : French names... all the same anyway
+CORRECT: Saint Paul de Fenouillet
+
+TYPE: MC
+Q: How much does Leo love Aina?
+A: Infinitely much, without any hésitation the most I ever loved DISP : Did you even hesitate ?
+A: A lot DISP : Also true... but love you more than that
+A: Not at all, just masking  DISP : that's you, not me
+A: So much DISP : True, but more than just this
+CORRECT: Infinitely much, without any hésitation the most I ever loved
+
+TYPE: TEXT
+Q: How many km did we do on the longest bike ride together?
+ACCEPTED: 94 DISP : Oh shit you really remember ??!!
+WRONG DISP : Yeah I didn't expect you to get it either
+
+TYPE: MC
+Q: What is my favourite color?
+A: Green DISP : You must have been masking when you said its the same as yours
+A: Blue DISP : Nah
+A: Red DISP : Nope not the same as you
+A: Yellow DISP : No my ex made me hate yellow
+CORRECT: Green
+
+TYPE: MC
+Q: What is my favourite taste?
+A: Vanilla DISP : of course
+A: Pistachio DISP : like it but not the top one
+A: Chocolate DISP : Yours obviously
+A: Mango DISP : Best fruit but not best taste
+CORRECT: Vanilla
+
+TYPE: MC
+Q: What is the plan?
+A: Become the best electronics engineer of Catalonia DISP : Lol you will with Genis as a boss
+A: Just have fun, no ropes attached DISP : So boring to not love each ofther for the rest of our life
+A: Having an amazing life in Alella with you DISP : Obviously
+A: A dog-free house DISP : What kind onf monster wants that ??!!
+CORRECT: Having an amazing life in Alella with you
+
+TYPE: MC
+Q: What do you deserve to receive?
+A: Love and care DISP : Of course you do, and I have to tell you as your therapist
+A: Attention DISP : I thought you were low maintenance ?
+A: Love DISP : not only my baby !
+A: A German boyfriend DISP : Really  ? I am disapointed in you Aina
+CORRECT: Love and care

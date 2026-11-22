@@ -12,6 +12,11 @@
     <p>Open a door when its day arrives</p>
   </div>
 
+  <div class="mobile-warning" id="mobileWarning">
+    📱➡️💻 This is way better on a computer — a couple of doors use your mouse in ways that don't quite translate to a phone.
+    <button class="dismiss-btn" id="dismissWarning" aria-label="Dismiss">✕</button>
+  </div>
+
   <div class="grid" id="grid"></div>
 
   <div class="footer-note">
@@ -67,6 +72,10 @@
   }
 
   render();
+
+  document.getElementById("dismissWarning").addEventListener("click", () => {
+    document.getElementById("mobileWarning").style.display = "none";
+  });
 </script>
 <script src="snow.js"></script>
 </body>

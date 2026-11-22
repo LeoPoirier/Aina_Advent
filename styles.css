@@ -108,6 +108,40 @@ body {
   font-size: clamp(0.95rem, 1.2vw, 1.2rem);
 }
 
+.mobile-warning {
+  display: none;
+  position: relative;
+  max-width: 440px;
+  margin: 0 auto 28px;
+  padding: 12px 36px 12px 16px;
+  background: rgba(240, 196, 25, 0.1);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.mobile-warning .dismiss-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
+
+@media (max-width: 640px) {
+  .mobile-warning {
+    display: block;
+  }
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));

@@ -3,16 +3,660 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Day 5 — Coming soon</title>
-<link rel="stylesheet" href="../styles.css">
+<title>Day 5 — How Well Do You Know Us?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: "Quicksand", "Segoe UI", system-ui, sans-serif;
+    color: #f5ece0;
+    background: radial-gradient(ellipse at 50% 20%, #3a1420 0%, #220a12 45%, #140609 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 20px 50px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* film grain, consistent with the other days */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncR type='linear' slope='2.4' intercept='-0.7'/><feFuncG type='linear' slope='2.4' intercept='-0.7'/><feFuncB type='linear' slope='2.4' intercept='-0.7'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .spotlight {
+    position: fixed;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1100px;
+    height: 900px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(255, 224, 160, 0.14), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .stage {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h2 {
+    font-family: "Fraunces", serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    margin: 0 0 6px;
+    text-align: center;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  /* ---- progress ---- */
+  .progress-track {
+    width: 100%;
+    max-width: 420px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #f0c419;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .progress-label {
+    font-size: 0.8rem;
+    color: #d9b8a8;
+    margin-bottom: 34px;
+  }
+
+  /* ---- question card ---- */
+  .quiz-card {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    padding: 34px 28px;
+    text-align: center;
+  }
+
+  .quiz-prompt {
+    font-family: "Fraunces", serif;
+    font-weight: 600;
+    font-size: clamp(1.25rem, 3.2vw, 1.6rem);
+    margin: 0 0 26px;
+    line-height: 1.35;
+  }
+
+  .mc-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .mc-option {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.04);
+    color: #f5ece0;
+    font-family: "Quicksand", sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 14px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+
+  .mc-option:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #f0c419;
+  }
+
+  .mc-option:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .mc-option.correct {
+    background: rgba(79, 168, 109, 0.3);
+    border-color: #4fa86d;
+  }
+
+  .mc-option.incorrect {
+    background: rgba(196, 69, 60, 0.3);
+    border-color: #c4453c;
+  }
+
+  .mc-option:disabled {
+    cursor: default;
+  }
+
+  .text-answer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .text-answer input {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.06);
+    color: #f5ece0;
+    font-family: "Quicksand", sans-serif;
+    font-size: 1.05rem;
+    padding: 14px 16px;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .text-answer input:focus {
+    outline: none;
+    border-color: #f0c419;
+  }
+
+  .submit-btn {
+    border: none;
+    background: #f0c419;
+    color: #2a2210;
+    font-family: "Quicksand", sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 13px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s ease;
+  }
+
+  .submit-btn:hover { transform: translateY(-2px); }
+  .submit-btn:active { transform: scale(0.96); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+  .feedback-note {
+    margin-top: 18px;
+    font-size: 0.9rem;
+    min-height: 1.3em;
+  }
+
+  .feedback-note.correct { color: #7fd79a; }
+  .feedback-note.incorrect { color: #e8928a; }
+
+  .next-btn {
+    margin-top: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: transparent;
+    color: #f5ece0;
+    font-family: "Quicksand", sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  /* ---- end screens ---- */
+  .end-card {
+    width: 100%;
+    text-align: center;
+  }
+
+  .end-icon {
+    font-size: 4.5rem;
+    margin-bottom: 10px;
+  }
+
+  .end-icon.win {
+    animation:
+      popBounce 0.7s cubic-bezier(.34, 1.6, .64, 1) both,
+      floatForever 2.4s ease-in-out 0.7s infinite;
+  }
+
+  .end-icon.lose {
+    animation:
+      popBounce 0.7s cubic-bezier(.34, 1.6, .64, 1) both,
+      sadWobble 2.8s ease-in-out 0.7s infinite;
+  }
+
+  @keyframes popBounce {
+    0%   { transform: scale(0) rotate(-20deg); }
+    55%  { transform: scale(1.35) rotate(10deg); }
+    75%  { transform: scale(0.9) rotate(-4deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  @keyframes floatForever {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%      { transform: translateY(-16px) rotate(4deg); }
+  }
+
+  @keyframes sadWobble {
+    0%, 100% { transform: rotate(-7deg) translateY(0); }
+    50%      { transform: rotate(7deg) translateY(8px); }
+  }
+
+  .end-score {
+    font-size: 1.05rem;
+    color: #d9b8a8;
+    margin-bottom: 26px;
+  }
+
+  .rain-container {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .rain-item {
+    position: absolute;
+    top: -10vh;
+    animation-name: fall, sway;
+    animation-timing-function: linear, ease-in-out;
+    animation-iteration-count: 1, infinite;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+    will-change: transform;
+  }
+
+  @keyframes fall {
+    from { transform: translateY(0) rotate(0deg); }
+    to   { transform: translateY(125vh) rotate(var(--rot)); }
+  }
+
+  @keyframes sway {
+    0%, 100% { margin-left: -14px; }
+    50%      { margin-left: 14px; }
+  }
+
+  .retry-btn {
+    margin-top: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: transparent;
+    color: #f5ece0;
+    font-family: "Quicksand", sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 11px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .back-link {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    margin-top: 34px;
+    color: #d9b8a8;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: 1px solid rgba(217, 184, 168, 0.4);
+    padding: 9px 20px;
+    border-radius: 999px;
+  }
+
+  [hidden] { display: none !important; }
+</style>
 </head>
 <body>
-  <div class="day-page">
-    <h2>🎙️ Day 5</h2>
-    <p>This door's surprise isn't built yet — check back soon!</p>
-    <p style="font-size: 0.85rem; color: #7a7260;">(And after this one, days 6–24 are physical gifts — no doors for those. 🎁)</p>
-    <a class="back-link" href="../index.html">← Back to calendar</a>
+  <div class="spotlight"></div>
+
+  <div class="stage">
+    <h2>🎙️ How well do you know your couple (and your boyfriend)</h2>
+
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <p class="progress-label" id="progressLabel"></p>
+
+    <div class="quiz-card" id="quizCard"></div>
+
+    <div class="end-card" id="endCard" hidden></div>
   </div>
-<script src="../snow.js"></script>
+
+  <a class="back-link" href="../index.html">← Back to calendar</a>
+
+<script>
+  const QUESTIONS = [
+    {
+      type: "mc",
+      prompt: "How many week-ends did we spend together?",
+      options: ["13", "10", "9", "7"],
+      feedback: ["It's all numbers anyway", "It's all numbers anyway", "Wow color me impressed", "It's all numbers anyway"],
+      correctIndex: 2,
+    },
+    {
+      type: "text",
+      prompt: "What day did we meet each other? (DD/MM/YYYY)",
+      accepted: ["23/02/2026"],
+      feedback: { "23/02/2026": "At least you know that... reassuring" },
+      wrongFeedback: "What the Fuck ?",
+    },
+    {
+      type: "mc",
+      prompt: "What is the brand of my car?",
+      options: ["Mazda", "Toyota", "Clown car", "Honda"],
+      feedback: ["I will marry you for sure", "nope too bad", "ahah real funny... fuck you", "nope too bad"],
+      correctIndex: 0,
+    },
+    {
+      type: "mc",
+      prompt: "Which movie did we try to watch?",
+      options: ["Mr and Mrs Smith", "Catch Me If You Can", "Mamma Mia", "Rapunzel"],
+      feedback: [null, null, "and obviously Fight club", "WTF that was with Alex... I will fight you"],
+      correctIndex: 2,
+    },
+    {
+      type: "mc",
+      prompt: "What is the name of the via ferrata we did together?",
+      options: ["Saint Paul de Fenouillet", "Saint Vincent de Paul", "Saint Jean de Luz", "Saint Pierre des Corps"],
+      feedback: ["I loved that van trip so much", "French names... all the same anyway", "French names... all the same anyway", "French names... all the same anyway"],
+      correctIndex: 0,
+    },
+    {
+      type: "mc",
+      prompt: "How much does Leo love Aina?",
+      options: ["Infinitely much, without any hésitation the most I ever loved", "A lot", "Not at all, just masking", "So much"],
+      feedback: ["Did you even hesitate ?", "Also true... but love you more than that", "that's you, not me", "True, but more than just this"],
+      correctIndex: 0,
+    },
+    {
+      type: "text",
+      prompt: "How many km did we do on the longest bike ride together?",
+      accepted: ["94"],
+      feedback: { "94": "Oh shit you really remember ??!!" },
+      wrongFeedback: "Yeah I didn't expect you to get it either",
+    },
+    {
+      type: "mc",
+      prompt: "What is my favourite color?",
+      options: ["Green", "Blue", "Red", "Yellow"],
+      feedback: ["You must have been masking when you said its the same as yours", "Nah", "Nope not the same as you", "No my ex made me hate yellow"],
+      correctIndex: 0,
+    },
+    {
+      type: "mc",
+      prompt: "What is my favourite taste?",
+      options: ["Vanilla", "Pistachio", "Chocolate", "Mango"],
+      feedback: ["of course", "like it but not the top one", "Yours obviously", "Best fruit but not best taste"],
+      correctIndex: 0,
+    },
+    {
+      type: "mc",
+      prompt: "What is the plan?",
+      options: ["Become the best electronics engineer of Catalonia", "Just have fun, no ropes attached", "Having an amazing life in Alella with you", "A dog-free house"],
+      feedback: ["Lol you will with Genis as a boss", "So boring to not love each ofther for the rest of our life", "Obviously", "What kind onf monster wants that ??!!"],
+      correctIndex: 2,
+    },
+    {
+      type: "mc",
+      prompt: "What do you deserve to receive?",
+      options: ["Love and care", "Attention", "Love", "A German boyfriend"],
+      feedback: ["Of course you do, and I have to tell you as your therapist", "I thought you were low maintenance ?", "not only my baby !", "Really ? I am disapointed in you Aina"],
+      correctIndex: 0,
+    },
+  ];
+
+  const PASS_THRESHOLD = 0.75; // 75% correct to unlock the trophy reveal
+
+  let current = 0;
+  let correctCount = 0;
+  let answered = false;
+
+  const quizCard = document.getElementById("quizCard");
+  const endCard = document.getElementById("endCard");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+
+  function updateProgress() {
+    const pct = (current / QUESTIONS.length) * 100;
+    progressFill.style.width = pct + "%";
+    progressLabel.textContent = `Question ${Math.min(current + 1, QUESTIONS.length)} of ${QUESTIONS.length}`;
+  }
+
+  function normalize(str) {
+    return str.trim().toLowerCase();
+  }
+
+  function renderQuestion() {
+    answered = false;
+    updateProgress();
+    const q = QUESTIONS[current];
+    quizCard.innerHTML = "";
+
+    const prompt = document.createElement("p");
+    prompt.className = "quiz-prompt";
+    prompt.textContent = q.prompt;
+    quizCard.appendChild(prompt);
+
+    if (q.type === "mc") {
+      const optionsWrap = document.createElement("div");
+      optionsWrap.className = "mc-options";
+      q.options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.className = "mc-option";
+        btn.textContent = opt;
+        btn.addEventListener("click", () => handleMcAnswer(i, optionsWrap));
+        optionsWrap.appendChild(btn);
+      });
+      quizCard.appendChild(optionsWrap);
+    } else {
+      const wrap = document.createElement("div");
+      wrap.className = "text-answer";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Your answer...";
+      wrap.appendChild(input);
+
+      const submitBtn = document.createElement("button");
+      submitBtn.className = "submit-btn";
+      submitBtn.textContent = "Submit";
+      wrap.appendChild(submitBtn);
+
+      const feedback = document.createElement("p");
+      feedback.className = "feedback-note";
+      wrap.appendChild(feedback);
+
+      function submit() {
+        if (answered) return;
+        const val = normalize(input.value);
+        if (!val) return;
+        const matched = q.accepted.find((a) => val.includes(normalize(a)));
+        const isCorrect = !!matched;
+        let custom;
+        if (isCorrect && q.feedback) custom = q.feedback[normalize(matched)];
+        if (!isCorrect && q.wrongFeedback) custom = q.wrongFeedback;
+        finishAnswer(isCorrect, feedback, wrap, custom);
+      }
+
+      submitBtn.addEventListener("click", submit);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") submit();
+      });
+
+      quizCard.appendChild(wrap);
+    }
+  }
+
+  function handleMcAnswer(selectedIndex, optionsWrap) {
+    if (answered) return;
+    const q = QUESTIONS[current];
+    const isCorrect = selectedIndex === q.correctIndex;
+
+    Array.from(optionsWrap.children).forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === q.correctIndex) btn.classList.add("correct");
+      else if (i === selectedIndex) btn.classList.add("incorrect");
+    });
+
+    const feedback = document.createElement("p");
+    feedback.className = "feedback-note";
+    optionsWrap.after(feedback);
+    const custom = q.feedback && q.feedback[selectedIndex];
+    finishAnswer(isCorrect, feedback, optionsWrap, custom);
+  }
+
+  function finishAnswer(isCorrect, feedbackEl, disableTarget, customText) {
+    answered = true;
+    if (isCorrect) correctCount++;
+    feedbackEl.textContent = customText || (isCorrect ? "✓ Correct" : "✗ Not quite");
+    feedbackEl.classList.add(isCorrect ? "correct" : "incorrect");
+
+    if (disableTarget.tagName === "DIV" && disableTarget.querySelector("input")) {
+      disableTarget.querySelector("input").disabled = true;
+      disableTarget.querySelector(".submit-btn").disabled = true;
+    }
+
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "next-btn";
+    nextBtn.textContent = current === QUESTIONS.length - 1 ? "See results" : "Next question";
+    nextBtn.addEventListener("click", () => {
+      current++;
+      if (current >= QUESTIONS.length) {
+        showResults();
+      } else {
+        renderQuestion();
+      }
+    });
+    quizCard.appendChild(nextBtn);
+  }
+
+  function showResults() {
+    updateProgress();
+    progressLabel.textContent = "Quiz complete";
+    quizCard.hidden = true;
+    endCard.hidden = false;
+
+    const score = correctCount / QUESTIONS.length;
+    const passed = score >= PASS_THRESHOLD;
+
+    endCard.innerHTML = "";
+    stopRain();
+
+    const icon = document.createElement("div");
+    icon.className = passed ? "end-icon win" : "end-icon lose";
+    icon.textContent = passed ? "🏆" : "😢";
+    endCard.appendChild(icon);
+
+    const heading = document.createElement("h2");
+    heading.style.marginBottom = "8px";
+    heading.textContent = passed ? "You know us so well!" : "So close!";
+    endCard.appendChild(heading);
+
+    const scoreLine = document.createElement("p");
+    scoreLine.className = "end-score";
+    scoreLine.textContent = `${correctCount} / ${QUESTIONS.length} correct`;
+    endCard.appendChild(scoreLine);
+
+    if (passed) {
+      startRain(WIN_PIECES);
+    } else {
+      startRain(LOSE_PIECES);
+      const retryBtn = document.createElement("button");
+      retryBtn.className = "retry-btn";
+      retryBtn.textContent = "Try again";
+      retryBtn.addEventListener("click", restartQuiz);
+      endCard.appendChild(retryBtn);
+    }
+  }
+
+  function restartQuiz() {
+    current = 0;
+    correctCount = 0;
+    quizCard.hidden = false;
+    endCard.hidden = true;
+    stopRain();
+    renderQuestion();
+  }
+
+  const WIN_PIECES = ["🏆", "✨", "🏆", "✨", "⭐", "🏆"];
+  const LOSE_PIECES = ["💔", "😢", "💔", "🥀", "😢"];
+
+  let rainInterval = null;
+
+  function startRain(pieces) {
+    stopRain();
+    const container = document.createElement("div");
+    container.className = "rain-container";
+    container.id = "rainContainer";
+    document.body.appendChild(container);
+
+    function spawnPiece() {
+      const el = document.createElement("div");
+      el.className = "rain-item";
+      el.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+      const left = Math.random() * 100;
+      const duration = 2.6 + Math.random() * 2.4;
+      const size = 1.1 + Math.random() * 1.7;
+      const rot = Math.round(Math.random() * 720 - 360) + "deg";
+      el.style.left = left + "vw";
+      el.style.fontSize = size + "rem";
+      el.style.setProperty("--rot", rot);
+      el.style.animationDuration = `${duration}s, ${0.8 + Math.random() * 0.6}s`;
+      el.style.animationDelay = `0s, ${Math.random() * 0.4}s`;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), duration * 1000 + 150);
+    }
+
+    // dense initial burst, then a steady dense rain that keeps going for as long as the screen is shown
+    for (let i = 0; i < 45; i++) {
+      setTimeout(spawnPiece, Math.random() * 600);
+    }
+    rainInterval = setInterval(spawnPiece, 110);
+  }
+
+  function stopRain() {
+    if (rainInterval) {
+      clearInterval(rainInterval);
+      rainInterval = null;
+    }
+    const container = document.getElementById("rainContainer");
+    if (container) container.remove();
+  }
+
+  // shuffle each MC question's options once per page load so the correct
+  // answer isn't predictably in the same spot (feedback, if any, moves with its option)
+  function shuffleMcOptions(q) {
+    const order = q.options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    q.options = order.map((i) => q.options[i]);
+    if (q.feedback) q.feedback = order.map((i) => q.feedback[i] ?? null);
+    q.correctIndex = order.indexOf(q.correctIndex);
+  }
+  QUESTIONS.forEach((q) => { if (q.type === "mc") shuffleMcOptions(q); });
+
+  renderQuestion();
+</script>
 </body>
 </html>
